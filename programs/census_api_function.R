@@ -1,5 +1,5 @@
 #Set working directory
-setwd("~/School/Fall 2018/Economic Data Analysis/Group Project")
+setwd("~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project")
 #Load packages
 library(censusapi)
 library(tidycensus)
@@ -12,14 +12,10 @@ readRenviron("~/.Renviron")
 # Check to see that the expected key is output in your R console
 Sys.getenv("CENSUS_KEY")
 
-#Create data frames to see available variables and georaphies from acs/flows
-avaiable_variables <- listCensusMetadata('acs/flows', vintage = 2014, type = "variables")
-avaiable_geographies <- listCensusMetadata('acs/flows', vintage = 2014, type = "geographies")
-
 #Function to pull data via census burea API
-get_data <- function(year, vars) {
+migration_data_api <- function(year, vars, county_code, state_code) {
   #Creating the URL to pull data from census bureau
-  resURL <- paste0('https://api.census.gov/data/',year,'/acs/flows?get=',vars,'&for=county:061&in=state:39&key=4406314b19dc50883b841ee1476ba327f14ef275')
+  resURL <<- paste0('https://api.census.gov/data/', year,'/acs/flows?get=', vars,'&for=county:', county_code, '&in=state:', state_code, '&key=4406314b19dc50883b841ee1476ba327f14ef275')
 
   #Pull in JSON data and storing in json_list
   json_list <- fromJSON(resURL)
@@ -35,21 +31,56 @@ get_data <- function(year, vars) {
   df$moved_in <- as.numeric(df$moved_in)
   df$moved_out <- as.numeric(df$moved_out)
   df$moved_net <- as.numeric(df$moved_net)
+  #Add state and county code to df for joining
+  df$state_code <- as.character(state_code)
+  df$county_code <- as.character(county_code)
   #Return df from the function
   return(df)
 }
 
-#Pull in data by year
-ham_county_flows_2009 <- get_data('2009', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
-ham_county_flows_2010 <- get_data('2010', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
-ham_county_flows_2011 <- get_data('2011', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
-ham_county_flows_2012 <- get_data('2012', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
-ham_county_flows_2013 <- get_data('2013', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
-ham_county_flows_2014 <- get_data('2014', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
-ham_county_flows_2015 <- get_data('2015', 'FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
+##There are probably better ways to do this, but I don't feel like messing around to figure it out
+##We are going to use a for loop to loop through every combination of country code, state code, and year
+##and call the census api function. At the end of each loop we save the results to a list
+##Once the loop is finished, we will rbind all the list together into one data frame
+##The loop takes abount 15 miniutes to run
 
-#Stack the data frame together to make hamilton country data frame
-ham_county <- rbind(ham_county_flows_2009, ham_county_flows_2010, ham_county_flows_2011, ham_county_flows_2012, ham_county_flows_2013, ham_county_flows_2014, ham_county_flows_2015)
+#Creating date frame of each county, state, and year combo
+codes <- data_frame(msa_counties$fipscountycode, msa_counties$fipsstatecode)
+year <- c('2009','2010','2011','2012','2013','2014','2015')
+var <- c('FULL2_NAME,FULL1_NAME,MOVEDIN,MOVEDOUT,MOVEDNET')
+#Each row in a unique api call we need
+api_calls <- distinct(crossing(codes, year, var))
+colnames(api_calls) <- c('county_code', 'state_code', 'year', 'var')
 
-#Arrange ham_county by county1 name and year
-ham_county <- ham_county %>% arrange(county1, year)
+#Clean up
+rm(county_code)
+rm(state_code)
+rm(year)
+rm(var)
+
+#for loop to loop over the api calls
+##Initilize empty list
+datalist <- list()
+
+for(i in 1:nrow(api_calls)) {
+  #Assign each cell in a row to a variable
+  year_var <- as.character(api_calls[i, 'year'])
+  var_var <- as.character(api_calls[i, 'var'])
+  county_var <- as.character(api_calls[i, 'county_code'])
+  state_var <- as.character(api_calls[i, 'state_code'])
+  
+  #Call function with created variables
+  data <- migration_data_api(year_var, var_var, county_var, state_var)
+  #Add interation for tracking
+  data$i <- i
+  data$state_code <- state_var
+  data$county_code <- county_var
+  
+  #Save result to list
+  datalist[[i]] <- data
+}
+
+#Extract data from datalist into dataframe
+migration_data <- do.call(rbind, datalist)
+
+
