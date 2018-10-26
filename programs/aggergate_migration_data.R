@@ -1,6 +1,11 @@
 #Set working directory
 setwd("~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project")
 
+#Load migration data
+load('programs/migration_data.rda')
+load('programs/msa_counties.rda')
+crosswalk <- read_csv('inputs/county_to_msa_crosswalk.csv')
+
 #Packages
 require(tidyverse)
 

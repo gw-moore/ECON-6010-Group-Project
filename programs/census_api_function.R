@@ -1,5 +1,5 @@
 #Set working directory
-setwd("~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project")
+setwd("~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project/programs")
 #Load packages
 library(censusapi)
 library(tidycensus)
@@ -39,7 +39,7 @@ migration_data_api <- function(year, vars, county_code, state_code) {
 }
 
 ##There are probably better ways to do this, but I don't feel like messing around to figure it out
-##We are going to use a for loop to loop through every combination of country code, state code, and year
+##We are going to use a for loop to loop through every combination of country code/state code, and year
 ##and call the census api function. At the end of each loop we save the results to a list
 ##Once the loop is finished, we will rbind all the list together into one data frame
 ##The loop takes abount 15 miniutes to run
@@ -53,8 +53,7 @@ api_calls <- distinct(crossing(codes, year, var))
 colnames(api_calls) <- c('county_code', 'state_code', 'year', 'var')
 
 #Clean up
-rm(county_code)
-rm(state_code)
+rm(codes)
 rm(year)
 rm(var)
 
@@ -83,4 +82,6 @@ for(i in 1:nrow(api_calls)) {
 #Extract data from datalist into dataframe
 migration_data <- do.call(rbind, datalist)
 
+#Save data frame for future loading to save time
+save(migration_data, file = "migration_data.rda")
 

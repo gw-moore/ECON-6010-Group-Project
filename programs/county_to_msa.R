@@ -6,7 +6,7 @@ require(tidyverse)
 require(lazyeval)
 
 #Read in MSA to Country crosswalk
-crosswalk <- read_csv('~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project/inputs/county_to_msa_crosswalk.csv')
+crosswalk <- read_csv('inputs/county_to_msa_crosswalk.csv')
 
 #Set of MSAs 
 msas <- c('Cincinnati, OH-KY-IN',
@@ -39,13 +39,16 @@ find_counties <- function(msa_name) {
 #Initilize emplty data frame
 msa_counties <- data_frame()
 
+#For loop to get all relevent counties
 for (msa in msas){
   #users defined function
   counties <- find_counties(msa)
   #Save results to date frame
-  msa_counties <<- rbind(msa_counties, counties)}
+  msa_counties <- rbind(msa_counties, counties)}
 
-View(msa_counties)
+#Save results
+save(msa_counties, file = "programs/msa_counties.rda")
+
 
 
 
