@@ -15,7 +15,7 @@ Sys.getenv("CENSUS_KEY")
 #Function to pull data via census burea API
 migration_data_api <- function(year, vars, county_code, state_code) {
   #Creating the URL to pull data from census bureau
-  resURL <<- paste0('https://api.census.gov/data/', year,'/acs/flows?get=', vars,'&for=county:', county_code, '&in=state:', state_code, '&key=4406314b19dc50883b841ee1476ba327f14ef275')
+  resURL <- paste0('https://api.census.gov/data/', year,'/acs/flows?get=', vars,'&for=county:', county_code, '&in=state:', state_code, '&key=4406314b19dc50883b841ee1476ba327f14ef275')
 
   #Pull in JSON data and storing in json_list
   json_list <- fromJSON(resURL)
