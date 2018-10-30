@@ -28,7 +28,7 @@ msas <- c('Cincinnati, OH-KY-IN',
 find_counties <- function(msa_name) {
     counties <- crosswalk %>% 
     filter_('cbsatitle == msa_name') %>% 
-    distinct(cbsatitle, countycountyequivalent, statename, fipsstatecode, fipscountycode)
+    distinct(cbsatitle, cbsacode, countycountyequivalent, statename, fipsstatecode, fipscountycode)
     
     return(counties)}
 

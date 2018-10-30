@@ -4,48 +4,88 @@ setwd("~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project/program
 library(jsonlite)
 library(tidyverse)
 
-##Function to view type of data from DataUSA
-fromJSON( "http://api.datausa.io/attrs/list/" )
+####################################################
+##American community survey data at the MSA level###
+####################################################
 
-viewDataLevels <- function( attribute )
-{
-  url <- paste( "http://api.datausa.io/attrs/", attribute, sep="" )
-  temp <- fromJSON( url )
-  df <- as.data.frame( temp[[1]] )
-  names(df) <- temp[[2]]
-  print( paste( "NUMBER OF ROWS:", nrow(df) ) )
-  return(df)
+#api function
+acs_data_api <- function(year) {
+  api <- paste0('http://api.datausa.io/api/csv/?show=geo&sumlevel=msa&year=',year,'&required=pop,pop_rank,age,us_citizens,non_us_citizens,non_eng_speakers_pct,income,income_rank,mean_commute_minutes,median_property_value,owner_occupied_housing_units')
+  
+  #Pull in CSV data and storing in df
+  return(read_csv(api))}
+
+#for loop to loop over the api function for each year of data
+##Initilize empty list
+datalist <- list()
+
+for(i in seq(2013,2016,1)){
+  #Call function
+  data <- acs_data_api(as.character(i))
+  data$year <- as.character(i)
+
+  #Save result to list
+  datalist[[i - 2012]] <- data
 }
+#Extract data from datalist into dataframe
+acs_data <- do.call(rbind, datalist)
+#Clean up
+rm(data,datalist,i,x)
 
-viewDataLevels('ipeds_expense')
-
-##Data at the MSA level
-api <- paste0('http://api.datausa.io/api/csv/?show=geo&sumlevel=msa&year=latest&required=pop,income,income_rank,num_emp,mean_commute_minutes') 
-#Pull in CSV data and storing in df
-df <- read_csv(api)
-
-##Homicide data at the county level
-api <- paste0('https://api.datausa.io/api/csv/?sort=desc&show=geo&required=homicide_rate&sumlevel=county&year=all') 
-#Pull in CSV data and storing in df
-df_homicide <- read_csv(api)
-
-##Violent crime data at the county level
-api <- paste0('https://api.datausa.io/api/csv/?sort=desc&show=geo&required=violent_crime&sumlevel=county&year=all') 
-#Pull in CSV data and storing in df
-df_violent_crime <- read_csv(api)
-
-##Number of Graduates from bacholors programs for Cincinnati MSA
-api <- paste0('https://api.datausa.io/api/csv/?sort=desc&sumlevel=6&degree=5&show=cip&year=all&geo=31000US17140') 
-#Pull in CSV data and storing in df
-df_college_grads <- read_csv(api)
-
-##Housing values by MSA
-api <- paste0('https://api.datausa.io/api/csv/?sort=desc&force=acs.yg_property_value&show=geo&sumlevel=msa&year=all') 
-#Pull in CSV data and storing in df
-df_housing_value <- read_csv(api)
-
-##Property taxes
+##################
+##Property taxes##
+##################
 api <- paste0('https://api.datausa.io/api/csv/?sort=desc&force=acs.yg_property_tax&show=geo&sumlevel=msa&year=all')
 #Pull in CSV data and storing in df
 df_prop_tax <- read_csv(api)
 
+##################################
+##Crime data at the county level##
+##################################
+api <- paste0('https://api.datausa.io/api/csv/?sort=desc&show=geo&sumlevel=county&year=all&required=homicide_rate,violent_crime') 
+#Pull in CSV data and storing in df
+df_crime <- read_csv(api)
+
+############################################
+##Number of graduates from degree programs##
+############################################
+#Set of MSAs 
+msas <- c('Cincinnati, OH-KY-IN',
+          'Denver-Aurora-Lakewood, CO',
+          'Austin-Round Rock, TX',
+          'Columbus, OH',
+          'Kansas City, MO-KS',
+          'Cleveland-Elyria, OH',
+          'Pittsburgh, PA',
+          'Indianapolis-Carmel-Anderson, IN',
+          'St. Louis, MO-IL',
+          'Charlotte-Concord-Gastonia, NC-SC',
+          'Louisville/Jefferson County, KY-IN',
+          'Nashville-Davidson--Murfreesboro--Franklin, TN',
+          'Memphis, TN-MS-AR')
+
+msa_codes <- crosswalk %>% filter(cbsatitle %in% msas) %>% distinct(cbsacode)
+
+#api function
+edu_data_api <- function(msa_code) {
+  api <- paste0('https://api.datausa.io/api/csv/?sort=desc&sumlevel=4&show=cip&year=all&geo=31000US',msa_code) 
+  print(api)
+  
+  #Pull in CSV data and storing in df
+  return(read_csv(api))}
+
+#for loop to loop over api funciton for each msa
+##Initilize empty list
+datalist <- list()
+
+for(i in 1:13){
+  #Call function
+  data <- edu_data_api(as.character(msa_codes[i,1]))
+  
+  #Save result to list
+  datalist[[i]] <- data
+}
+#Extract data from datalist into dataframe
+edu_data <- do.call(rbind, datalist)
+#Clean up
+rm(data,datalist,i,x)

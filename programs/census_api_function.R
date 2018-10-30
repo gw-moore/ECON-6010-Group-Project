@@ -53,9 +53,7 @@ api_calls <- distinct(crossing(codes, year, var))
 colnames(api_calls) <- c('county_code', 'state_code', 'year', 'var')
 
 #Clean up
-rm(codes)
-rm(year)
-rm(var)
+rm(codes,year,var)
 
 #for loop to loop over the api calls
 ##Initilize empty list
