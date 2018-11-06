@@ -30,7 +30,7 @@ msa_codes <- as.vector(msa_codes$cbsacode)
 
 for(msa_code in msa_codes) {
   #Creating the URL to pull data from census bureau
-  resURL <- paste0('https://api.stlouisfed.org/fred/series/observations?series_id=NGMP',msa_code,'&api_key=a2541dacf2fe0876e9ad7748fc97a381&file_type=json')
+  resURL <- paste0('https://api.stlouisfed.org/fred/series/observations?series_id=RGMP',msa_code,'&api_key=a2541dacf2fe0876e9ad7748fc97a381&file_type=json')
   
   #Pull in JSON data and storing in json_list
   json_list <- fromJSON(resURL)
@@ -57,3 +57,5 @@ gpd_data <- do.call(rbind, datalist)
 #Save data frame
 save(gpd_data, file = "programs/gdp_data.rda")
 
+
+CLEV439UR
