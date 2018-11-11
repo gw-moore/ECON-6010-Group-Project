@@ -32,6 +32,9 @@ acs_data <- do.call(rbind, datalist)
 #Clean up
 rm(data,datalist,i,x)
 
+#Save data
+save(acs_data, file = 'acs_data.rda')
+
 ##################
 ##Property taxes##
 ##################
@@ -39,12 +42,18 @@ api <- paste0('https://api.datausa.io/api/csv/?sort=desc&force=acs.yg_property_t
 #Pull in CSV data and storing in df
 df_prop_tax <- read_csv(api)
 
+#Save data
+save(df_prop_tax, file = 'property_tax_data.rda')
+
 ##################################
 ##Crime data at the county level##
 ##################################
 api <- paste0('https://api.datausa.io/api/csv/?sort=desc&show=geo&sumlevel=county&year=all&required=homicide_rate,violent_crime') 
 #Pull in CSV data and storing in df
 df_crime <- read_csv(api)
+
+#Save data
+save(df_crime, file = 'crime_data.rda')
 
 ############################################
 ##Number of graduates from degree programs##
