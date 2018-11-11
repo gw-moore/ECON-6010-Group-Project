@@ -38,7 +38,7 @@ find_counties <- function(msa_name) {
 
 #Initilize emplty data frame
 msa_counties <- data_frame()
-S
+
 #For loop to get all relevent counties
 for (msa in msas){
   #users defined function
@@ -54,6 +54,40 @@ msa_counties <- msa_counties %>%
 save(msa_counties, file = "programs/msa_counties.rda")
 
 
+#############################
+## Clean up migration data ##
+#############################
 
+# MSA Migration data
+msa_migration <- migration_data %>% 
+  inner_join(msa_counties, by = c('county2' = 'county_state')) %>% 
+  select(cbsatitle, county1, moved_in, moved_out, moved_net, year)
 
+#Rewrite find_counties function
+find_counties <- function(msa_name) {
+  counties <- msa_counties %>% 
+    filter_('cbsatitle == msa_name') %>% 
+    distinct(county_state)
+  
+  return(counties)}
+
+#Create empty dataframe
+clean_mig_data <- data.frame()
+
+#Distinct counties list
+msas <- msa_counties %>% distinct(cbsatitle)
+
+# Loop through each msa and filter out counties
+for (msa in msas) {
+  counties <- find_counties(msa)
+  
+  data <- msa_migration %>% 
+    filter_('cbsatitle == msa') %>% 
+    filter(!county1 %in% counties$county_state)
+  
+  clean_mig_data <- rbind(clean_mig_data, data)
+}
+
+# Save cleaned data
+save(clean_mig_data, file ='programs/clean_mig_data.rda')
 
