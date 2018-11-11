@@ -38,13 +38,17 @@ find_counties <- function(msa_name) {
 
 #Initilize emplty data frame
 msa_counties <- data_frame()
-
+S
 #For loop to get all relevent counties
 for (msa in msas){
   #users defined function
   counties <- find_counties(msa)
   #Save results to date frame
   msa_counties <- rbind(msa_counties, counties)}
+
+# Concatatate county and name together
+msa_counties <- msa_counties %>% 
+  mutate(county_state = paste0(countycountyequivalent, ', ', statename))
 
 #Save results
 save(msa_counties, file = "programs/msa_counties.rda")
