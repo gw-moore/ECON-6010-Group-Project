@@ -61,7 +61,11 @@ save(msa_counties, file = "programs/msa_counties.rda")
 # MSA Migration data
 msa_migration <- migration_data %>% 
   inner_join(msa_counties, by = c('county2' = 'county_state')) %>% 
-  select(cbsatitle, county1, moved_in, moved_out, moved_net, year)
+  select(cbsatitle, county1, moved_in, moved_out, moved_net, year) %>% 
+  group_by(cbsatitle, county1, year) %>% 
+  summarise(moved_in = sum(moved_in, na.rm = T),
+            moved_out = sum(moved_out,  na.rm = T), 
+            moved_net = sum(moved_net, na.rm = T))
 
 #Rewrite find_counties function
 find_counties <- function(msa_name) {
@@ -72,7 +76,8 @@ find_counties <- function(msa_name) {
   return(counties)}
 
 #Create empty dataframe
-clean_mig_data <- data.frame()
+clean_mig_data <- data.frame(matrix(ncol = 6, nrow = 0))
+colnames(clean_mig_data) <- c('cbsatitle', 'county1', 'year', 'moved_in', 'moved_out', 'moved_net')
 
 #Distinct counties list
 msas <-  as.vector(unique(msa_counties$cbsatitle))
@@ -89,10 +94,10 @@ for (msa in msas) {
   data <- data %>% 
     filter(!county1 %in% counties)
   
-  clean_mig_data <- rbind(clean_mig_data, data)
+  clean_mig_data <- bind_rows(clean_mig_data, data)
 }
 
-# Check datq
+# Check data
 counties <- find_counties('Cincinnati, OH-KY-IN')
 counties <- as.vector(counties$county_state)
 clean_mig_data %>% filter(cbsatitle == 'Cincinnati, OH-KY-IN' & county1 %in% counties)
