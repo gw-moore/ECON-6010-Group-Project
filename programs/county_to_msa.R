@@ -66,7 +66,7 @@ msa_migration <- migration_data %>%
 #Rewrite find_counties function
 find_counties <- function(msa_name) {
   counties <- msa_counties %>% 
-    filter_('cbsatitle == msa_name') %>% 
+    filter(cbsatitle == msa_name) %>% 
     distinct(county_state)
   
   return(counties)}
@@ -75,18 +75,32 @@ find_counties <- function(msa_name) {
 clean_mig_data <- data.frame()
 
 #Distinct counties list
-msas <- msa_counties %>% distinct(cbsatitle)
+msas <-  as.vector(unique(msa_counties$cbsatitle))
+msas
 
 # Loop through each msa and filter out counties
 for (msa in msas) {
   counties <- find_counties(msa)
+  counties <- as.vector(counties$county_state)
   
   data <- msa_migration %>% 
-    filter_('cbsatitle == msa') %>% 
-    filter(!county1 %in% counties$county_state)
+    filter(cbsatitle == msa) 
+  
+  data <- data %>% 
+    filter(!county1 %in% counties)
   
   clean_mig_data <- rbind(clean_mig_data, data)
 }
+
+# Check datq
+counties <- find_counties('Cincinnati, OH-KY-IN')
+counties <- as.vector(counties$county_state)
+clean_mig_data %>% filter(cbsatitle == 'Cincinnati, OH-KY-IN' & county1 %in% counties)
+
+counties <- find_counties('Kansas City, MO-KS')
+counties <- as.vector(counties$county_state)
+clean_mig_data %>% filter(cbsatitle == 'Kansas City, MO-KS' & county1 %in% counties)
+
 
 # Save cleaned data
 save(clean_mig_data, file ='programs/clean_mig_data.rda')
