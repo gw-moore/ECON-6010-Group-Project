@@ -5,14 +5,14 @@ require(tidyverse)
 
 # Manipulated and Cleaned Migration Data
 # CBSAtitle = "departing from" county, county1 = arriving to MSA
-load("clean_mig_data.rda")
+load("programs/prepped_data/clean_mig_data.rda")
 
 # Generic Demographic Information
-load("acs_data.rda")
+load("programs/prepped_data/acs_data.rda")
 
 # More Specific Candidate Indepedent Variables
-load("gdp_data.rda")
-load("property_tax_data.rda")
+load("programs/prepped_data/gdp_data.rda")
+load("programs/prepped_data/property_tax_data.rda")
 
 # Decided not to use crime dataset because there's only three years of data (only two of which overlap with the migration data).
 
@@ -28,7 +28,7 @@ load("property_tax_data.rda")
 #################################
 #MSA labels and content
 
-#Standardize the name of the msa column in each dataset to match the column name in clean_mig
+# Standardize the name of the msa column in each dataset to match the column name in clean_mig
 # Standardized column name = cbsatitle
 
 acs_cols <- colnames(acs_data)
@@ -39,12 +39,14 @@ prop_cols <- colnames(df_prop_tax)
 prop_cols_revised <- sub("geo_name", "cbsatitle", prop_cols)
 colnames(df_prop_tax) <- prop_cols_revised
 
-gpd_cols <- colnames(gpd_data)
-gpd_cols_revised <- sub("msa_title", "cbsatitle", gpd_cols)
-colnames(gpd_data) <- gpd_cols_revised
+gdp_cols <- colnames(gdp_data)
+gdp_cols_revised <- sub("msa_title", "cbsatitle", gdp_cols)
+colnames(gdp_data) <- gdp_cols_revised
 
+# Clean up values
+rm(list = c('acs_cols', 'acs_cols_revised', 'gdp_cols', 'gdp_cols_revised', 'prop_cols', 'prop_cols_revised'))
 
-#This is to standardize the *content* of the data itself in the msa column
+# This is to standardize the *content* of the data itself in the msa column
 require(gsubfn)
 cbsatitle <- gsub(" Metro Area", "", acs_data$cbsatitle)
 cbsatitle <- gsub(" Micro Area", "", cbsatitle)
@@ -65,7 +67,7 @@ df_prop_tax$cbsatitle <- cbsatitle
 cleanmig_acs <- dplyr::left_join(clean_mig_data, acs_data, by = "cbsatitle")
 
 # Add GDP data
-cleanmig_acs_GDP <- left_join(cleanmig_acs, gpd_data, by = "cbsatitle")
+cleanmig_acs_GDP <- left_join(cleanmig_acs, gdp_data, by = "cbsatitle")
 
 # Finally, add property tax
 cleanmig_acs_GDP_pt <- left_join(cleanmig_acs_GDP, df_prop_tax, by = "cbsatitle")
@@ -74,7 +76,8 @@ cleanmig_acs_GDP_pt <- left_join(cleanmig_acs_GDP, df_prop_tax, by = "cbsatitle"
 
 ########
 
-Final_Modelling_DF <- cleanmig_acs_GDP_pt
+modeling_df <- cleanmig_acs_GDP_pt
+save(modeling_df, file = 'programs/prepped_data/modeling_df.rda')
 
 # Contains all modelling data, with standardized content for MSA data, which is a column named "cbsatitle", upon which it has been joined.
 
