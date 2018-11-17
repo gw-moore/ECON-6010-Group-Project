@@ -47,7 +47,7 @@ colnames(gdp_data) <- gdp_cols_revised
 rm(list = c('acs_cols', 'acs_cols_revised', 'gdp_cols', 'gdp_cols_revised', 'prop_cols', 'prop_cols_revised'))
 
 # This is to standardize the *content* of the data itself in the msa column
-require(gsubfn)
+# require(gsubfn)
 cbsatitle <- gsub(" Metro Area", "", acs_data$cbsatitle)
 cbsatitle <- gsub(" Micro Area", "", cbsatitle)
 acs_data$cbsatitle <- cbsatitle
