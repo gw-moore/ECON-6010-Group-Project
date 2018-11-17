@@ -58,25 +58,43 @@ df_prop_tax$cbsatitle <- cbsatitle
 
 # the content of the GDP cbsatitle column is already properly formatted
 
+####################################
+# Change data formats for joins
+acs_data$year <- as.double(acs_data$year)
 
+gdp_data$year <- gsub('-01-01', '', gdp_data$date)
+gdp_data$year <- as.double(gdp_data$year)
+gdp_data$date <- NULL
+
+df_prop_tax$year <- as.double(df_prop_tax$year)
+
+####################################
+# Aggergate state/year migration
+msa_state_year_agg <- clean_mig_data %>% 
+  group_by(cbsatitle, year) %>% 
+  summarise(total_mig_in = sum(moved_in, na.rm=TRUE),
+            total_mig_out = sum(moved_out, na.rm=TRUE),
+            total_mig_net = sum(moved_net, na.rm=TRUE))
 
 #########################################################################
 ############# Now to actually join ######################################
 
 # Join together clean_mig_data and acs
-cleanmig_acs <- dplyr::left_join(clean_mig_data, acs_data, by = "cbsatitle")
+cleanmig_acs <- msa_state_year_agg %>% 
+  filter(year %in% c('2013', '2014', '2015')) %>% 
+  left_join(acs_data, by = c("cbsatitle", "year"))
 
 # Add GDP data
-cleanmig_acs_GDP <- left_join(cleanmig_acs, gdp_data, by = "cbsatitle")
+cleanmig_acs_GDP <- left_join(cleanmig_acs, gdp_data, by = c("cbsatitle", "year"))
 
 # Finally, add property tax
-cleanmig_acs_GDP_pt <- left_join(cleanmig_acs_GDP, df_prop_tax, by = "cbsatitle")
-
-
+cleanmig_acs_GDP_pt <- left_join(cleanmig_acs_GDP, df_prop_tax, by = c("cbsatitle", "year"))
 
 ########
 
 modeling_df <- cleanmig_acs_GDP_pt
+modeling_df$geo.x <- NULL
+modeling_df <- modeling_df[, -grep("_moe", colnames(modeling_df))]
 save(modeling_df, file = 'programs/prepped_data/modeling_df.rda')
 
 # Contains all modelling data, with standardized content for MSA data, which is a column named "cbsatitle", upon which it has been joined.
