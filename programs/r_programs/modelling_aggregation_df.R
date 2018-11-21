@@ -2,6 +2,7 @@
 # Creating a modelling dataframe composed of all the Independent Variables
 
 require(tidyverse)
+require(gsubfn)
 
 # Manipulated and Cleaned Migration Data
 # CBSAtitle = "departing from" county, county1 = arriving to MSA
@@ -10,10 +11,20 @@ load("programs/prepped_data/clean_mig_data.rda")
 # Generic Demographic Information
 load("programs/prepped_data/acs_data.rda")
 
-# More Specific Candidate Indepedent Variables
-load("programs/prepped_data/gdp_data.rda")
+# Now for more Specific Candidate Indepedent Variables, such as:
+
+#Property Tax Data
 load("programs/prepped_data/property_tax_data.rda")
 
+# GDP Data
+gdp_2013 <- read_csv("programs/prepped_data/msa_gdp_2013.csv")
+gdp_2014 <- read_csv("programs/prepped_data/msa_gdp_2014.csv")
+gdp_2015 <- read_csv("programs/prepped_data/msa_gdp_2015.csv")
+msa_gdp <- bind_rows(gdp_2013,gdp_2014,gdp_2015)
+#Switched data sources to a richer dataset, previously used:
+#load("programs/prepped_data/gdp_data.rda")
+
+###################
 # Decided not to use crime dataset because there's only three years of data (only two of which overlap with the migration data).
 
 
@@ -56,7 +67,8 @@ cbsatitle <- gsub(" Metro Area", "", df_prop_tax$cbsatitle)
 cbsatitle <- gsub(" Micro Area", "", cbsatitle)
 df_prop_tax$cbsatitle <- cbsatitle
 
-# the content of the GDP cbsatitle column is already properly formatted
+cbsatitle <- c(msa_gdp$cbsatitle)
+msa_gdp$cbsatitle <- gsub(" \\(Metropolitan Statistical Area)", "", cbsatitle)
 
 ####################################
 # Change data formats for joins
@@ -85,7 +97,8 @@ cleanmig_acs <- msa_state_year_agg %>%
   left_join(acs_data, by = c("cbsatitle", "year"))
 
 # Add GDP data
-cleanmig_acs_GDP <- left_join(cleanmig_acs, gdp_data, by = c("cbsatitle", "year"))
+cleanmig_acs_GDP <- msa_gdp %>% 
+  right_join(cleanmig_acs, by = c("cbsatitle", "year"))
 
 # Finally, add property tax
 cleanmig_acs_GDP_pt <- left_join(cleanmig_acs_GDP, df_prop_tax, by = c("cbsatitle", "year"))
@@ -95,6 +108,7 @@ cleanmig_acs_GDP_pt <- left_join(cleanmig_acs_GDP, df_prop_tax, by = c("cbsatitl
 modeling_df <- cleanmig_acs_GDP_pt
 modeling_df$geo.x <- NULL
 modeling_df <- modeling_df[, -grep("_moe", colnames(modeling_df))]
+modeling_df
 save(modeling_df, file = 'programs/prepped_data/modeling_df.rda')
 
 # Contains all modelling data, with standardized content for MSA data, which is a column named "cbsatitle", upon which it has been joined.
