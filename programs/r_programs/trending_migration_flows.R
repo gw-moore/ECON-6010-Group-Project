@@ -3,19 +3,21 @@ setwd("~/School/Fall_2018/Economic_Data_Analysis/ECON-6010-Group-Project")
 # Load libraries and data
 library(tidyverse)
 library(ggrepel)
-load('programs/gdp_data.Rda')
-load('programs/migration_data.Rda')
-load('programs/acs_data.Rda')
-load('programs/crime_data.Rda')
-load('programs/property_tax_data.Rda')
-load('programs/msa_counties.Rda')
-load('programs/clean_mig_data.Rda')
+load('programs/prepped_data/gdp_data.Rda')
+load('programs/prepped_data/migration_data.Rda')
+load('programs/prepped_data/acs_data.Rda')
+load('programs/prepped_data/crime_data.Rda')
+load('programs/prepped_data/property_tax_data.Rda')
+load('programs/prepped_data/msa_counties.Rda')
+load('programs/prepped_data/clean_mig_data.Rda')
+load('programs/prepped_data/comparison_msas_vec.rda')
 crosswalk <- read_csv('inputs/county_to_msa_crosswalk.csv')
 
 # Migration trends
 
 # Aggergate to total year migration
 yearly_mig <- clean_mig_data %>% 
+  filter(cbsatitle %in% comparison_msas_vec) %>% 
   group_by(cbsatitle, year) %>% 
   summarise(total_moved_in = sum(moved_in, na.rm = T),  
             total_moved_out = sum(moved_out, na.rm = T), 
