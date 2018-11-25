@@ -27,23 +27,28 @@ yearly_mig <- clean_mig_data %>%
 
 # Convert year to date type
 yearly_mig$year <- as.Date(as.character(yearly_mig$year), format = "%Y")
+breaks <- seq.Date(as.Date('2009/01/01'), as.Date('2015/01/01'), 'years')
 
 # Cincinnati ggplot time plot
-yearly_mig %>% 
+cincinnati_mig_trend <- yearly_mig %>% 
   filter(cbsatitle == 'Cincinnati, OH-KY-IN') %>% 
   mutate(label = if_else(year == max(year), as.character(cbsatitle), NA_character_)) %>%
   ggplot(aes(x = year, y=total_moved_net, color = cbsatitle)) + geom_line(size = 2) +
   geom_label_repel(aes(label = label),
                    nudge_x = 1,
                    na.rm = TRUE) +
-  ggtitle('Net Migration Trend by MSA') +
+  ggtitle('Cincinnati Net Migration Trend by MSA') +
   ylab('Total Net Migration') +
   xlab('Year') +
+  scale_y_continuous(limits = c(-8000, 5000), breaks=seq(-8000, 5000, 1000)) +
+  #scale_x_date( breaks = breaks, date_labels = "%Y") +
   labs(color = 'MSA') +
   theme(legend.position="none")
 
+ggsave('outputs/cincinnati_mig_trend.png', cincinnati_mig_trend)
+
 # ggplot time plot
-yearly_mig %>% 
+msa_mig_trend <- yearly_mig %>% 
   mutate(label = if_else(year == max(year), as.character(cbsatitle), NA_character_)) %>%
   ggplot(aes(x = year, y=total_moved_net, color = cbsatitle)) + geom_line(size = 2) +
   geom_label_repel(aes(label = label),
@@ -53,5 +58,8 @@ yearly_mig %>%
   ggtitle('Net Migration Trend by MSA') +
   ylab('Total Net Migration') +
   xlab('Year') +
+  scale_y_continuous(limits = c(-40000, 85000), breaks=seq(-40000, 85000, 10000)) +
   labs(color = 'MSA')  +
   theme(legend.position="none")
+
+ggsave('outputs/msa_mig_trend.png', msa_mig_trend)
