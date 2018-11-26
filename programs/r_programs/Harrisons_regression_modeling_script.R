@@ -4,6 +4,7 @@ load("modeling_df.rda")
 # Correlation plot to avoid multicollinearity (package: corrplot)
 # Then star gazer on all these variables
 
+require(tidyverse)
 require(corrplot)
 
 #This vector contains all the variables that will not be considered for the correlation matrix (some dropped for multicollinearity, some dropped because they aren't numeric)
